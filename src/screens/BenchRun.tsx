@@ -23,7 +23,6 @@ export default function BenchRun() {
   const rb = build ? resolveBuild(build, uidMap) : null;
   const ready = rb ? buildReadiness(rb).ready : false;
   const bench = BENCH_MAP.get(benchId)!;
-  const unlocked = g.stats.bestScore >= bench.unlockScore;
   const pred = build && ready ? predict(build, bench, uidMap) : null;
   const prevBest = g.runs.filter((r) => r.benchId === benchId).reduce((a, r) => Math.max(a, r.score), 0);
 

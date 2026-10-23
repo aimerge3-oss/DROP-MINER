@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type {
-  GameState, OwnedItem, Build, BenchmarkRun, TuneSettings, MissionProgress, SettingsState, Rarity,
+  GameState, OwnedItem, Build, BenchmarkRun, TuneSettings, MissionProgress, SettingsState,
 } from '../types';
 import { DEFAULT_TUNE } from '../types';
 import { getItem } from '../data/items';
@@ -129,7 +129,13 @@ export interface GameStore extends GameState {
   resetGame: () => void;
 }
 
-export function rarityOf(rarity: Rarity): number { return 0; } // placeholder removed below
+export interface LevelInfo { level: number; into: number; need: number }
+/** Deterministic incremental XP curve: level n requires 120*n XP to pass. */
+export function levelProgress(xp: number): LevelInfo {
+  let total = xp, lvl = 1, req = 120;
+  while (total >= req && lvl < 50) { total -= req; lvl++; req = lvl * 120; }
+  return { level: lvl, into: total, need: req };
+}
 
 let toastSeq = 1;
 
@@ -145,12 +151,6 @@ export const useGame = create<GameStore>((set, get) => {
     });
   };
 
-  /** bump counters toward a stat-based achievement check helper */
-  const countRarity = (defId: string): Partial<GameState['stats']> | null => {
-    const r = getItem(defId).rarity;
-    if (r === 'Mythic') return { mythicsFound: loaded.stats.mythicsFound + 1 };
-    return null;
-  };
 
   return {
     ...loaded,
@@ -387,16 +387,8 @@ export const useGame = create<GameStore>((set, get) => {
 
     addXp(amount) {
       mutate((cur) => {
-        const xp = cur.xp + amount;
-        // Level curve: level n requires 120*n XP cumulative-ish (simple incremental)
-        let level = cur.stats.level;
-        let need = level * 120;
-        let xpLeft = xp;
-        // recompute level from total xp deterministically
-        let total = xp, lvl = 1, req = 120;
-        while (total >= req && lvl < 50) { total -= req; lvl++; req = lvl * 120; }
-        level = lvl; need = req;
-        void need; void xpLeft; void level;
+        const xp = Math.max(0, cur.xp + amount);
+        const { level } = levelProgress(xp);
         return { xp, stats: { ...cur.stats, level } };
       });
     },
@@ -412,7 +404,6 @@ export const useGame = create<GameStore>((set, get) => {
   // helpers captured in closure --------------------------------------------
   function progressMission(kind: string, amount: number) {
     if (amount <= 0) return;
-    const s = get();
     mutate((cur) => ({
       missions: cur.missions.map((m) => {
         const def = DAILY_POOL.find((d) => d.id === m.id);
@@ -479,4 +470,3 @@ export function uidMapOf(inventory: OwnedItem[]): Map<string, string> {
   return new Map(inventory.map((i) => [i.uid, i.defId]));
 }
 
-void countRarity; void rarityOf;

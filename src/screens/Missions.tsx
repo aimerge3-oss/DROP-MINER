@@ -1,6 +1,6 @@
 import { useGame } from '../state/gameStore';
 import { DAILY_POOL, ACHIEVEMENTS } from '../data/missions';
-import { Panel, Bar, StatRow, fmt } from '../ui/components';
+import { Panel, Bar, fmt } from '../ui/components';
 
 export default function Missions() {
   const g = useGame();

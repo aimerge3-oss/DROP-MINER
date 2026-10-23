@@ -3,7 +3,7 @@ import { useGame, isEquipped, uidMapOf } from '../state/gameStore';
 import { getItem } from '../data/items';
 import { resolveBuild, buildReadiness, checkCompatibility, type SlotUnion } from '../engine/compatibility';
 import { estimatePower, totalPower, coolingCapacity, rawPerformance } from '../engine/benchmark';
-import { Panel, ItemCard, EmptyState, fmt, StatRow, Bar, rarityColor } from '../ui/components';
+import { Panel, EmptyState, fmt, StatRow, Bar, rarityColor } from '../ui/components';
 import type { Screen } from '../App';
 import type { Build, ItemDef, GameState } from '../types';
 
